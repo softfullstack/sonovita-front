@@ -1,0 +1,32 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (contienen secretos)
+.env
+.env.local
+.env.*.local
+
+# Build / salida
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Caché
+.cache/
+.pnpm-store/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
