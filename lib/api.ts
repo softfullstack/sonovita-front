@@ -65,6 +65,8 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public errors: Record<string, string[]> = {},
+    /** Machine readable reason, e.g. `email_not_verified`. */
+    public code?: string,
   ) {
     super(message)
   }
@@ -118,7 +120,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (response.status === 401) {
       setToken(null)
     }
-    throw new ApiError(payload.message ?? 'Ocurrió un error. Intenta de nuevo.', response.status, payload.errors ?? {})
+    if (response.status === 429) {
+      throw new ApiError('Hiciste demasiados intentos. Espera un minuto y vuelve a intentarlo.', 429)
+    }
+    throw new ApiError(payload.message ?? 'Ocurrió un error. Intenta de nuevo.', response.status, payload.errors ?? {}, payload.code)
   }
 
   return payload as T

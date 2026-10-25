@@ -26,12 +26,17 @@ function LoginForm() {
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
+    const email = String(data.get('email'))
     setSubmitting(true)
     setError(null)
     try {
-      await login(String(data.get('email')), String(data.get('password')))
+      await login(email, String(data.get('password')))
       router.push(next)
     } catch (exception) {
+      if (exception instanceof ApiError && exception.code === 'email_not_verified') {
+        router.push(`/verificar-correo/?email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`)
+        return
+      }
       setError(exception as ApiError)
       setSubmitting(false)
     }
@@ -49,6 +54,9 @@ function LoginForm() {
         <Field label="Contraseña" error={error?.field('password')}>
           <input name="password" type="password" required autoComplete="current-password" className={inputClass} />
         </Field>
+        <div className="-mt-1 text-right">
+          <Link href={`/recuperar-contrasena/?next=${encodeURIComponent(next)}`} className="text-sm font-semibold text-[#f47d43]">¿Olvidaste tu contraseña?</Link>
+        </div>
         <PrimaryButton type="submit" disabled={submitting} className="w-full">{submitting ? 'Ingresando…' : 'Ingresar'}</PrimaryButton>
       </form>
       <p className="mt-6 text-center text-sm text-[#796d77]">¿No tienes cuenta? <Link href={`/registro/?next=${encodeURIComponent(next)}`} className="font-bold text-[#f47d43]">Regístrate</Link></p>
