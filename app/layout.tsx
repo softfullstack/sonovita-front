@@ -5,7 +5,8 @@ import { AuthProvider } from '@/lib/auth'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sonovita | Equipos médicos en México',
+  metadataBase: new URL('https://sonovita.com.mx'),
+  title: 'Sonovita | Equipos de ultrasonido en México',
   description: 'Marketplace especializado en equipos de ultrasonido nuevos y seminuevos para profesionales de la salud.',
   generator: 'v0.app',
   icons: {
