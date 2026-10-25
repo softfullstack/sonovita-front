@@ -54,9 +54,6 @@ function LoginForm() {
         <Field label="Contraseña" error={error?.field('password')}>
           <input name="password" type="password" required autoComplete="current-password" className={inputClass} />
         </Field>
-        <div className="-mt-1 text-right">
-          <Link href={`/recuperar-contrasena/?next=${encodeURIComponent(next)}`} className="text-sm font-semibold text-[#f47d43]">¿Olvidaste tu contraseña?</Link>
-        </div>
         <PrimaryButton type="submit" disabled={submitting} className="w-full">{submitting ? 'Ingresando…' : 'Ingresar'}</PrimaryButton>
       </form>
       <p className="mt-6 text-center text-sm text-[#796d77]">¿No tienes cuenta? <Link href={`/registro/?next=${encodeURIComponent(next)}`} className="font-bold text-[#f47d43]">Regístrate</Link></p>
