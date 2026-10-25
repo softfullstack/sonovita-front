@@ -34,3 +34,5 @@ Thumbs.db
 *.tsbuildinfo
 # Next.js lo genera automáticamente
 next-env.d.ts
+# TypeScript
+*.tsbuildinfo
