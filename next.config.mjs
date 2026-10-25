@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  experimental: {
+    agentUpgrade: 'security',
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
