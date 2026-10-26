@@ -5,7 +5,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
 import { CodeInput, ResendCodeButton } from '@/components/verification-code'
-import { ApiError } from '@/lib/api'
+import { ApiError, toApiError } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { safeNext } from '@/lib/navigation'
 
@@ -38,7 +38,7 @@ function ForgotPasswordForm() {
       setNotice(await sendPasswordResetCode(email))
       setCodeSent(true)
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
     } finally {
       setSubmitting(false)
     }
@@ -50,7 +50,7 @@ function ForgotPasswordForm() {
       setNotice(await sendPasswordResetCode(email))
       setCode('')
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       throw exception
     }
   }
@@ -64,7 +64,7 @@ function ForgotPasswordForm() {
       await resetPassword({ email, code, password: String(data.get('password')), password_confirmation: String(data.get('password_confirmation')) })
       router.push(next)
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       setSubmitting(false)
     }
   }

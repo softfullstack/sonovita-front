@@ -77,6 +77,17 @@ export class ApiError extends Error {
   }
 }
 
+/** Turns anything thrown by `api()` or `fetch` into an ApiError the forms can render. */
+export function toApiError(exception: unknown): ApiError {
+  if (exception instanceof ApiError) {
+    return exception
+  }
+  if (exception instanceof TypeError) {
+    return new ApiError('No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.', 0)
+  }
+  return new ApiError(exception instanceof Error ? exception.message : 'Ocurrió un error. Intenta de nuevo.', 0)
+}
+
 export function getToken(): string | null {
   try {
     return window.localStorage.getItem(TOKEN_KEY)

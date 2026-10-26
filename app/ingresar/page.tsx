@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
-import { ApiError } from '@/lib/api'
+import { ApiError, toApiError } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { safeNext } from '@/lib/navigation'
 
@@ -37,7 +37,7 @@ function LoginForm() {
         router.push(`/verificar-correo/?email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`)
         return
       }
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       setSubmitting(false)
     }
   }

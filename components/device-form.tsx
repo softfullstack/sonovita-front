@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
-import { api, plainText, type ApiError, type Category, type Device } from '@/lib/api'
+import { api, plainText, toApiError, type ApiError, type Category, type Device } from '@/lib/api'
 
 const conditions = [
   { value: 'new', label: 'Nuevo' },
@@ -38,7 +38,7 @@ export function DeviceForm({ device, submitLabel, onSaved }: { device?: Device; 
       })
       onSaved(response.data)
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
     } finally {
       setSaving(false)
     }

@@ -5,7 +5,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
 import { CodeInput, ResendCodeButton } from '@/components/verification-code'
-import { ApiError } from '@/lib/api'
+import { ApiError, toApiError } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { safeNext } from '@/lib/navigation'
 
@@ -38,7 +38,7 @@ function VerifyEmailForm() {
       await verifyEmail(email, code)
       router.push(next)
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       setSubmitting(false)
     }
   }
@@ -49,7 +49,7 @@ function VerifyEmailForm() {
       setNotice(await resendVerificationCode(email))
       setCode('')
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       throw exception
     }
   }

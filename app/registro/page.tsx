@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
-import { ApiError } from '@/lib/api'
+import { ApiError, toApiError } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { safeNext } from '@/lib/navigation'
 
@@ -32,7 +32,7 @@ function RegisterForm() {
       const response = await register({ name: data.name, email: data.email, phone: data.phone || undefined, password: data.password, password_confirmation: data.password_confirmation })
       router.push(`/verificar-correo/?email=${encodeURIComponent(response.email)}&enviado=1&next=${encodeURIComponent(next)}`)
     } catch (exception) {
-      setError(exception as ApiError)
+      setError(toApiError(exception))
       setSubmitting(false)
     }
   }
