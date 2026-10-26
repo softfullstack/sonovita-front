@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, BadgeCheck, ImageOff, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone } from 'lucide-react'
+import { DeviceGallery } from '@/components/device-gallery'
 import { api, formatPrice, plainText, type Device } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 
@@ -20,7 +21,6 @@ function DeviceDetail() {
   const { user, loading: authLoading } = useAuth()
   const [device, setDevice] = useState<Device | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [activeImage, setActiveImage] = useState(0)
 
   useEffect(() => {
     if (!slug) {
@@ -48,7 +48,6 @@ function DeviceDetail() {
     return <div className="mx-auto max-w-7xl px-5 py-24 text-center text-[#796d77]">Cargando equipo…</div>
   }
 
-  const image = device.images[activeImage]
   const specs = [
     ['Marca', device.brand],
     ['Modelo', device.model],
@@ -63,20 +62,7 @@ function DeviceDetail() {
       <Link href="/catalogo/" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5e5260] hover:text-[#f47d43]"><ArrowLeft size={16} />Volver al catálogo</Link>
 
       <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
-        <div>
-          <div className="aspect-[4/3] overflow-hidden rounded-3xl border border-[#eadfe5] bg-[#f2ebe7]">
-            {image ? <img src={image.url} alt={device.title} className="size-full object-contain" /> : <div className="grid size-full place-items-center text-[#c9b9c4]"><ImageOff size={48} /></div>}
-          </div>
-          {device.images.length > 1 && (
-            <div className="mt-4 grid grid-cols-5 gap-3">
-              {device.images.map((item, index) => (
-                <button key={item.id} onClick={() => setActiveImage(index)} className={`aspect-square overflow-hidden rounded-xl border-2 ${index === activeImage ? 'border-[#f47d43]' : 'border-transparent'}`} aria-label={`Ver foto ${index + 1}`}>
-                  <img src={item.url} alt="" className="size-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <DeviceGallery images={device.images} title={device.title} />
 
         <div>
           <span className="text-xs font-bold uppercase tracking-wide text-[#f47d43]">{device.category?.name ?? 'Equipo médico'}</span>
