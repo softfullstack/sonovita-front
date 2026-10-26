@@ -30,8 +30,6 @@ Thumbs.db
 # Editores
 .vscode/
 .idea/
-# TypeScript
-*.tsbuildinfo
 # Next.js lo genera automáticamente
 next-env.d.ts
 # TypeScript
