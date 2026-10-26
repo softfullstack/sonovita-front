@@ -30,3 +30,5 @@ Thumbs.db
 # Editores
 .vscode/
 .idea/
+# Next.js lo genera automáticamente
+next-env.d.ts
