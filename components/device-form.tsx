@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { AddressFields } from '@/components/address-fields'
 import { Alert, Field, PrimaryButton, inputClass } from '@/components/form'
 import { api, plainText, toApiError, type ApiError, type Category, type Device } from '@/lib/api'
 
@@ -28,6 +29,11 @@ export function DeviceForm({ device, submitLabel, onSaved }: { device?: Device; 
       category_id: data.category_id ? Number(data.category_id) : null,
       year: data.year ? Number(data.year) : null,
       price: data.price ? Number(data.price) : null,
+      postal_code: data.postal_code || null,
+      state: data.state || null,
+      municipality: data.municipality || null,
+      city: data.city || null,
+      neighborhood: data.neighborhood || null,
     }
     setSaving(true)
     setError(null)
@@ -85,9 +91,7 @@ export function DeviceForm({ device, submitLabel, onSaved }: { device?: Device; 
           </select>
         </Field>
       </div>
-      <Field label="Ubicación" error={error?.field('location')}>
-        <input name="location" maxLength={255} defaultValue={device?.location ?? ''} placeholder="Ciudad, estado" className={inputClass} />
-      </Field>
+      <AddressFields device={device} error={error} />
       <Field label="Descripción" error={error?.field('description')}>
         <textarea name="description" required rows={6} maxLength={10000} defaultValue={device ? plainText(device.description) : ''} placeholder="Accesorios incluidos, horas de uso, mantenimiento, garantía…" className={inputClass} />
       </Field>
