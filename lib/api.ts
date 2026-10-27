@@ -44,6 +44,12 @@ export type Device = {
   status_label?: string
   rejection_reason?: string | null
   can_edit?: boolean
+  /** Full address, only sent to the owner. The store only shows `location`. */
+  postal_code?: string | null
+  state?: string | null
+  municipality?: string | null
+  city?: string | null
+  neighborhood?: string | null
 }
 
 export type User = {
