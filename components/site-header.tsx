@@ -20,12 +20,8 @@ export function SiteHeader() {
       <div className="bg-[#4f315f] px-4 py-2 text-center text-xs font-medium tracking-wide text-white/90">Equipos verificados · Publicaciones revisadas por nuestro equipo · Atención personalizada</div>
       <header className="border-b border-[#eadfe5] bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-5 lg:px-8">
-          <Link href="/" className="flex items-center gap-3" aria-label="Sonovita inicio">
-            <div className="grid size-12 place-items-center rounded-full bg-[#f47d43] text-xl font-black text-white">S</div>
-            <div>
-              <div className="font-serif text-2xl font-bold leading-none tracking-tight text-[#51305f]">sonovita</div>
-              <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-[#f47d43]">ultrasound</div>
-            </div>
+          <Link href="/" className="flex shrink-0 items-center" aria-label="Sonovita inicio">
+            <img src="/logo-sonovita.png" alt="Sonovita Ultrasound" width={292} height={85} className="h-11 w-auto sm:h-14" />
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-semibold text-[#5e5260] md:flex" aria-label="Principal">
             {links.map((link) => <Link key={link.href} href={link.href} className="hover:text-[#ef7442]">{link.label}</Link>)}
