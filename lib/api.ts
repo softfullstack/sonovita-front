@@ -39,6 +39,8 @@ export type Device = {
   cover_image: DeviceImage | null
   images: DeviceImage[]
   seller?: { name: string; email?: string; phone?: string | null }
+  /** Backend page with the link preview tags; it forwards to the store. */
+  share_url?: string
   published_at: string | null
   status?: DeviceStatus
   status_label?: string
@@ -163,6 +165,36 @@ export function formatPrice(device: Pick<Device, 'price' | 'currency'>): string 
     return 'Consultar precio'
   }
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: device.currency, maximumFractionDigits: 0 }).format(Number(device.price))
+}
+
+/**
+ * wa.me link to the seller with the device already written in the chat.
+ * Ten digit numbers are Mexican, so they get the 52 country code.
+ */
+export function whatsappUrl(phone: string, device: Device): string | null {
+  let digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) {
+    digits = `52${digits}`
+  }
+  if (digits.length < 11) {
+    return null
+  }
+  const details = [
+    [device.brand, device.model].filter(Boolean).join(' '),
+    device.year,
+    device.condition_label,
+  ].filter(Boolean).join(' · ')
+  const lines = [
+    'Hola, me interesa este equipo:',
+    '',
+    `*${device.title}*`,
+    details,
+    `Precio: ${formatPrice(device)}`,
+    device.location ? `Ubicación: ${device.location}` : null,
+    '',
+    device.share_url ?? (typeof window === 'undefined' ? null : window.location.href),
+  ].filter((line) => line !== null)
+  return `https://wa.me/${digits}?text=${encodeURIComponent(lines.join('\n'))}`
 }
 
 /** The admin panel stores rich text; the store shows it as plain text. */

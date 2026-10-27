@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone } from 'lucide-react'
 import { DeviceGallery } from '@/components/device-gallery'
-import { api, formatPrice, plainText, type Device } from '@/lib/api'
+import { api, formatPrice, plainText, whatsappUrl, type Device } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 
 export default function DevicePage() {
@@ -56,6 +56,7 @@ function DeviceDetail() {
     ['Categoría', device.category?.name],
     ['Registro sanitario', device.sanitary_registration],
   ].filter(([, value]) => value)
+  const sellerWhatsapp = device.seller?.phone ? whatsappUrl(device.seller.phone, device) : null
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
@@ -85,7 +86,17 @@ function DeviceDetail() {
             <p className="mt-1 text-sm text-white/75">{device.seller?.name}</p>
             {user ? (
               <div className="mt-4 space-y-2">
-                {device.seller?.phone && <a href={`tel:${device.seller.phone}`} className="flex items-center gap-2 rounded-full bg-[#f47d43] px-5 py-3 text-sm font-bold hover:bg-[#ff8d51]"><Phone size={16} />{device.seller.phone}</a>}
+                {device.seller?.phone && (
+                  sellerWhatsapp ? (
+                    <a href={sellerWhatsapp} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#f47d43] px-5 py-3 text-sm font-bold hover:bg-[#ff8d51]">
+                      <Phone size={16} />
+                      {device.seller.phone}
+                      <span className="ml-auto text-xs font-semibold text-white/85">WhatsApp</span>
+                    </a>
+                  ) : (
+                    <a href={`tel:${device.seller.phone}`} className="flex items-center gap-2 rounded-full bg-[#f47d43] px-5 py-3 text-sm font-bold hover:bg-[#ff8d51]"><Phone size={16} />{device.seller.phone}</a>
+                  )
+                )}
                 {device.seller?.email && <a href={`mailto:${device.seller.email}?subject=${encodeURIComponent(`Interés en ${device.title}`)}`} className="flex items-center gap-2 rounded-full border border-white/40 px-5 py-3 text-sm font-bold hover:bg-white/10"><Mail size={16} />{device.seller.email}</a>}
               </div>
             ) : (
