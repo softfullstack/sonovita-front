@@ -33,8 +33,8 @@ export default function HomePage() {
   return (
     <>
       <section id="inicio" className="relative overflow-hidden bg-[#f5ebe6]">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(62,32,65,.84),rgba(62,32,65,.4),rgba(62,32,65,.08))]" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1584982751601-97dcc096659c?auto=format&fit=crop&w=2000&q=85')] bg-cover bg-center opacity-60 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-[url('/hero-sonovita.jpg')] bg-cover bg-[position:70%_center]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(62,32,65,.88),rgba(62,32,65,.6)_45%,rgba(62,32,65,.1))]" />
         <div className="relative mx-auto flex min-h-[530px] max-w-7xl items-center px-5 py-20 lg:px-8">
           <div className="max-w-2xl text-white">
             <p className="mb-5 text-sm font-bold uppercase tracking-[0.22em] text-[#ffb08a]">Marketplace especializado</p>
