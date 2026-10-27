@@ -5,9 +5,13 @@ import { ImagePlus, Trash2 } from 'lucide-react'
 import { Alert } from '@/components/form'
 import { StatusBadge } from '@/components/status-badge'
 import { api, type ApiError, type Device, type DeviceImage } from '@/lib/api'
+import { compressImage, MAX_IMAGE_SIDE } from '@/lib/image'
 
 const MAX_IMAGES = 10
+/** Size the API accepts per photo, checked after the photo is compressed. */
 const MAX_SIZE_MB = 5
+/** Largest original we try to compress, to avoid running the browser out of memory. */
+const MAX_ORIGINAL_SIZE_MB = 30
 
 /** Upload and remove the photos of a device while it can still be edited. */
 export function DeviceImages({ device, onChange }: { device: Device; onChange: (images: DeviceImage[]) => void }) {
@@ -25,12 +29,17 @@ export function DeviceImages({ device, onChange }: { device: Device; onChange: (
         setError(`Cada equipo puede tener hasta ${MAX_IMAGES} fotos.`)
         break
       }
-      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        setError(`«${file.name}» pesa más de ${MAX_SIZE_MB} MB.`)
+      if (file.size > MAX_ORIGINAL_SIZE_MB * 1024 * 1024) {
+        setError(`«${file.name}» pesa más de ${MAX_ORIGINAL_SIZE_MB} MB.`)
+        continue
+      }
+      const compressed = await compressImage(file)
+      if (compressed.size > MAX_SIZE_MB * 1024 * 1024) {
+        setError(`«${file.name}» sigue pesando más de ${MAX_SIZE_MB} MB después de optimizarla.`)
         continue
       }
       const body = new FormData()
-      body.append('image', file)
+      body.append('image', compressed)
       try {
         const response = await api<{ data: DeviceImage }>(`/my/devices/${device.id}/images`, { method: 'POST', body })
         images = [...images, response.data]
@@ -56,7 +65,7 @@ export function DeviceImages({ device, onChange }: { device: Device; onChange: (
     <div className="space-y-4 rounded-2xl border border-[#eadfe5] bg-white p-6">
       <div>
         <h2 className="font-serif text-2xl font-bold text-[#51305f]">Fotos</h2>
-        <p className="mt-1 text-sm text-[#796d77]">Sube fotos claras del equipo, sus accesorios y el número de serie. JPG, PNG o WEBP de hasta {MAX_SIZE_MB} MB, máximo {MAX_IMAGES}.</p>
+        <p className="mt-1 text-sm text-[#796d77]">Sube fotos claras del equipo, sus accesorios y el número de serie. JPG, PNG o WEBP, máximo {MAX_IMAGES}. Las optimizamos automáticamente a {MAX_IMAGE_SIDE} px en su lado mayor antes de subirlas.</p>
       </div>
       {error && <Alert>{error}</Alert>}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
