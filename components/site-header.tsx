@@ -17,7 +17,6 @@ export function SiteHeader() {
 
   return (
     <>
-      <div className="bg-[#4f315f] px-4 py-2 text-center text-xs font-medium tracking-wide text-white/90">Equipos verificados · Publicaciones revisadas por nuestro equipo · Atención personalizada</div>
       <header className="border-b border-[#eadfe5] bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-5 lg:px-8">
           <Link href="/" className="flex shrink-0 items-center" aria-label="Sonovita inicio">
