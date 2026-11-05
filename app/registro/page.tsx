@@ -58,6 +58,10 @@ function RegisterForm() {
         <Field label="Confirmar contraseña">
           <input name="password_confirmation" type="password" required minLength={8} autoComplete="new-password" className={inputClass} />
         </Field>
+        <p className="text-xs text-[#796d77]">
+          Al crear tu cuenta aceptas los <Link href="/terminos-y-condiciones/" className="font-bold text-[#f47d43]">Términos y condiciones</Link> y el{' '}
+          <Link href="/aviso-de-privacidad/" className="font-bold text-[#f47d43]">Aviso de privacidad</Link>.
+        </p>
         <PrimaryButton type="submit" disabled={submitting} className="w-full">{submitting ? 'Creando cuenta…' : 'Crear cuenta'}</PrimaryButton>
       </form>
       <p className="mt-6 text-center text-sm text-[#796d77]">¿Ya tienes cuenta? <Link href={`/ingresar/?next=${encodeURIComponent(next)}`} className="font-bold text-[#f47d43]">Ingresa</Link></p>
