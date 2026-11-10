@@ -17,7 +17,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="border-b border-[#eadfe5] bg-white">
+      <header className="border-b border-[#eadfe5] bg-white print:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-5 lg:px-8">
           <Link href="/" className="flex shrink-0 items-center" aria-label="Sonovita inicio">
             <img src="/logo-sonovita.png" alt="Sonovita Ultrasound" width={292} height={85} className="h-11 w-auto sm:h-14" />

@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone } from 'lucide-react'
 import { DeviceGallery } from '@/components/device-gallery'
+import { FinancingQuote } from '@/components/financing-quote'
 import { api, formatPrice, plainText, whatsappUrl, type Device } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 
@@ -80,6 +81,8 @@ function DeviceDetail() {
               </div>
             ))}
           </dl>
+
+          {device.price !== null && <FinancingQuote device={device} defaultName={user?.name} />}
 
           <div className="mt-6 rounded-2xl bg-[#51305f] p-6 text-white">
             <h2 className="font-serif text-xl font-bold">Contactar al vendedor</h2>

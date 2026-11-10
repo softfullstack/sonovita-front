@@ -54,6 +54,45 @@ export type Device = {
   neighborhood?: string | null
 }
 
+export type Financing = {
+  /** Annual interest rate as a percentage, e.g. 18 for 18 %. */
+  annual_rate: number
+  terms: number[]
+  quote_validity_days: number
+}
+
+export type QuotePlan = {
+  months: number
+  monthly_payment: number
+  total_interest: number
+  total_cost: number
+}
+
+export type Quote = {
+  token: string
+  folio: string
+  /** Public page of the quote in the store. */
+  url: string
+  customer_name: string | null
+  device: {
+    title: string
+    slug: string
+    brand: string | null
+    model: string | null
+    is_available: boolean
+    cover_image: DeviceImage | null
+  }
+  price: string
+  currency: string
+  down_payment: string
+  financed_amount: number
+  annual_rate: string
+  plans: QuotePlan[]
+  valid_until: string
+  is_expired: boolean
+  created_at: string
+}
+
 export type User = {
   id: number
   name: string
@@ -165,6 +204,23 @@ export function formatPrice(device: Pick<Device, 'price' | 'currency'>): string 
     return 'Consultar precio'
   }
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: device.currency, maximumFractionDigits: 0 }).format(Number(device.price))
+}
+
+export function formatMoney(amount: number | string, currency = 'MXN', fractionDigits = 2): string {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(Number(amount))
+}
+
+/**
+ * Fixed monthly payment for a loan, the same formula the backend uses to
+ * save the quote. Used only to preview the plans while the customer types.
+ */
+export function monthlyPayment(financedAmount: number, annualRate: number, months: number): number {
+  if (financedAmount <= 0) {
+    return 0
+  }
+  const monthlyRate = annualRate / 100 / 12
+  const payment = monthlyRate === 0 ? financedAmount / months : (financedAmount * monthlyRate) / (1 - (1 + monthlyRate) ** -months)
+  return Math.round(payment * 100) / 100
 }
 
 /**
