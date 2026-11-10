@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Check, CheckCircle2, Copy, Download, ImageOff, Wallet } from 'lucide-react'
 import { QuoteCarousel } from '@/components/quote-carousel'
 import { Field, inputClass } from '@/components/form'
+import { SocialIcons } from '@/components/social-icons'
 import { api, formatMoney, toApiError, type ApiError, type Quote } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -135,7 +136,7 @@ function QuoteDetail() {
             <p className="text-base font-bold text-[#27212b]">{quote.customer_name ?? 'Cotización personalizada'}</p>
 
             {quote.device.images.length ? (
-              <QuoteCarousel images={quote.device.images} title={quote.device.title} />
+              <QuoteCarousel images={quote.device.images} title={quote.device.title} printLink={shareUrl} />
             ) : (
               <div className="grid aspect-[4/3] place-items-center rounded-2xl bg-[#f6f0ec] text-[#c9b9c4]"><ImageOff size={40} /></div>
             )}
@@ -241,10 +242,12 @@ function QuoteDetail() {
           </div>
         </div>
 
-        <footer className="flex flex-col gap-2 bg-gradient-to-r from-[#3c2447] via-[#51305f] to-[#7a3f73] px-6 py-4 text-sm text-white sm:flex-row sm:items-center sm:justify-between sm:px-8 print:flex-row print:items-center print:justify-between">
-          <span className="font-bold">sonovita.com.mx</span>
-          <span className="text-white/80">Marketplace de equipos médicos</span>
-          <span className="break-all text-xs text-white/70">{shareUrl}</span>
+        <footer className="flex items-center justify-between gap-4 bg-gradient-to-r from-[#3c2447] via-[#51305f] to-[#7a3f73] px-6 py-4 text-sm text-white sm:px-8">
+          <div>
+            <p className="font-bold">sonovita.com.mx</p>
+            <SocialIcons className="mt-2 flex items-center gap-3" />
+          </div>
+          <span className="text-right text-white/80">Marketplace de equipos médicos</span>
         </footer>
       </article>
 

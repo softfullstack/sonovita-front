@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils'
 
 /**
  * Photo carousel of the quoted device. The PDF prints the photo on screen,
- * without the arrows or dots.
+ * without the arrows or dots, and with `printLink` the photo in the PDF
+ * opens that page when clicked.
  */
-export function QuoteCarousel({ images, title }: { images: DeviceImage[]; title: string }) {
+export function QuoteCarousel({ images, title, printLink }: { images: DeviceImage[]; title: string; printLink?: string }) {
   const [index, setIndex] = useState(0)
   const single = images.length === 1
 
@@ -30,6 +31,7 @@ export function QuoteCarousel({ images, title }: { images: DeviceImage[]; title:
           />
         ))}
       </div>
+      {printLink && <a href={printLink} className="absolute inset-0 hidden print:block" aria-label={`Abrir la cotización de ${title}`} />}
       {!single && (
         <>
           <button type="button" onClick={() => go(-1)} className="absolute top-1/2 left-3 -translate-y-1/2 rounded-full bg-white/90 p-2 text-[#51305f] shadow hover:bg-white print:hidden" aria-label="Foto anterior"><ChevronLeft size={18} /></button>
