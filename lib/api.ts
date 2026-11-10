@@ -80,7 +80,8 @@ export type Quote = {
     brand: string | null
     model: string | null
     is_available: boolean
-    cover_image: DeviceImage | null
+    /** Approved photos of the device, empty once it is no longer published. */
+    images: DeviceImage[]
   }
   price: string
   currency: string
@@ -90,6 +91,9 @@ export type Quote = {
   plans: QuotePlan[]
   valid_until: string
   is_expired: boolean
+  /** The plan the customer confirmed; null until then. */
+  selected_months: number | null
+  confirmed_at: string | null
   created_at: string
 }
 

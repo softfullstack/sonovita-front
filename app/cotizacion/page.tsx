@@ -3,8 +3,15 @@
 import Link from 'next/link'
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, Check, Copy, Download, MessageCircle } from 'lucide-react'
-import { api, formatMoney, type Quote } from '@/lib/api'
+import { Check, CheckCircle2, Copy, Download, ImageOff, Wallet } from 'lucide-react'
+import { QuoteCarousel } from '@/components/quote-carousel'
+import { Field, inputClass } from '@/components/form'
+import { api, formatMoney, toApiError, type ApiError, type Quote } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
+import { cn } from '@/lib/utils'
+
+/** Badge color per plan, from the Sonovita orange to its purple. */
+const TERM_COLORS = ['#f6a172', '#f47d43', '#c25a6f', '#84406f', '#51305f']
 
 export default function QuotePage() {
   return (
@@ -20,10 +27,20 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
 }
 
+function wholeMoney(amount: number | string, currency: string): string {
+  return formatMoney(amount, currency, 0)
+}
+
 function QuoteDetail() {
   const token = useSearchParams().get('id')
+  const { user } = useAuth()
   const [quote, setQuote] = useState<Quote | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [selectedMonths, setSelectedMonths] = useState<number | null>(null)
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [confirming, setConfirming] = useState(false)
+  const [confirmError, setConfirmError] = useState<ApiError | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -32,16 +49,26 @@ function QuoteDetail() {
       return
     }
     api<{ data: Quote }>(`/quotes/${encodeURIComponent(token)}`)
-      .then((response) => setQuote(response.data))
+      .then((response) => {
+        setQuote(response.data)
+        setSelectedMonths(response.data.selected_months)
+      })
       .catch((exception) => setError(exception.status === 404 ? 'Esta cotización no existe. Revisa que el link esté completo.' : exception.message))
   }, [token])
 
   useEffect(() => {
     if (quote) {
       // Browsers use the page title as the name of the saved PDF.
-      document.title = `Cotización ${quote.folio} | Sonovita`
+      document.title = `Cotización ${quote.folio} - ${quote.device.title} - Sonovita`
     }
   }, [quote])
+
+  useEffect(() => {
+    if (user) {
+      setPhone((current) => current || user.phone || '')
+      setEmail((current) => current || user.email)
+    }
+  }, [user])
 
   if (error) {
     return (
@@ -56,9 +83,28 @@ function QuoteDetail() {
     return <div className="mx-auto max-w-4xl px-5 py-24 text-center text-[#796d77]">Cargando cotización…</div>
   }
 
+  const confirmed = quote.confirmed_at !== null
+  const canConfirm = !confirmed && !quote.is_expired
   const shareUrl = quote.url || window.location.href
-  const deviceDetails = [quote.device.brand, quote.device.model].filter(Boolean).join(' · ')
-  const whatsappText = `Cotización ${quote.folio} de Sonovita: ${quote.device.title}\n${shareUrl}`
+
+  async function confirmQuote() {
+    if (!quote || selectedMonths === null) {
+      return
+    }
+    setConfirming(true)
+    setConfirmError(null)
+    try {
+      const response = await api<{ data: Quote }>(`/quotes/${encodeURIComponent(quote.token)}/confirmation`, {
+        method: 'POST',
+        body: JSON.stringify({ months: selectedMonths, phone, email: email.trim() || null }),
+      })
+      setQuote(response.data)
+    } catch (exception) {
+      setConfirmError(toApiError(exception))
+    } finally {
+      setConfirming(false)
+    }
+  }
 
   async function copyLink() {
     try {
@@ -71,102 +117,145 @@ function QuoteDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-10 lg:px-8 print:max-w-none print:p-0">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href={`/dispositivo/?slug=${quote.device.slug}`} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5e5260] hover:text-[#f47d43]"><ArrowLeft size={16} />Ver equipo</Link>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={copyLink} className="inline-flex items-center gap-2 rounded-full border border-[#eadfe5] bg-white px-4 py-2.5 text-sm font-bold text-[#51305f] hover:border-[#f47d43]">
-            {copied ? <Check size={16} /> : <Copy size={16} />}{copied ? 'Link copiado' : 'Copiar link'}
-          </button>
-          <a href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#eadfe5] bg-white px-4 py-2.5 text-sm font-bold text-[#51305f] hover:border-[#f47d43]"><MessageCircle size={16} />WhatsApp</a>
-          <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-full bg-[#f47d43] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#df6935]"><Download size={16} />Descargar PDF</button>
-        </div>
-      </div>
+    <div className="bg-[#f6f0ec] px-3 py-8 sm:px-6 print:bg-white print:p-0">
+      {/* Letter size page with no browser margins, so the bars reach the edges like the printed quote. */}
+      <style>{'@page { size: letter; margin: 0; }'}</style>
 
-      {quote.is_expired && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 print:hidden">Esta cotización venció el {formatDate(quote.valid_until)}. Vuelve a cotizar el equipo para obtener montos vigentes.</div>
-      )}
-      {!quote.device.is_available && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 print:hidden">Este equipo ya no está publicado en la tienda.</div>
-      )}
-
-      <article className="rounded-3xl border border-[#eadfe5] bg-white p-6 sm:p-10 print:rounded-none print:border-0 print:p-0">
-        <header className="flex flex-col justify-between gap-6 border-b border-[#eadfe5] pb-6 sm:flex-row sm:items-start print:flex-row">
-          <img src="/logo-sonovita.png" alt="Sonovita" width={292} height={85} className="h-12 w-auto" />
-          <div className="sm:text-right print:text-right">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#f47d43]">Cotización</p>
-            <p className="font-serif text-2xl font-bold text-[#51305f]">{quote.folio}</p>
-            <p className="mt-1 text-sm text-[#796d77]">Fecha: {formatDate(quote.created_at)}</p>
-            <p className="text-sm text-[#796d77]">Vigencia: hasta el {formatDate(quote.valid_until)}</p>
+      <article className="mx-auto flex max-w-[8.5in] flex-col overflow-hidden rounded-[28px] bg-white shadow-xl shadow-[#51305f]/10 print:h-[11in] print:max-w-none print:rounded-none print:shadow-none">
+        <header className="flex items-center justify-between gap-4 rounded-b-[28px] bg-gradient-to-r from-[#3c2447] via-[#51305f] to-[#7a3f73] px-6 py-4 text-white sm:px-8">
+          <img src="/logo-footer.png" alt="Sonovita" width={150} height={136} className="h-14 w-auto" />
+          <div className="text-right">
+            <p className="text-sm font-bold sm:text-base">{formatDate(quote.created_at)}</p>
+            <p className="text-xs text-white/70">Cotización {quote.folio}</p>
           </div>
         </header>
 
-        {quote.customer_name && (
-          <p className="mt-6 text-sm text-[#5e5260]">Preparada para <span className="font-bold text-[#27212b]">{quote.customer_name}</span></p>
-        )}
+        <div className="grid gap-8 px-6 pt-7 pb-6 sm:grid-cols-[1fr_1.1fr] sm:px-8 print:grid-cols-[1fr_1.1fr] print:gap-7 print:pt-5 print:pb-3">
+          <div className="space-y-5">
+            <p className="text-base font-bold text-[#27212b]">{quote.customer_name ?? 'Cotización personalizada'}</p>
 
-        <section className="mt-6 flex gap-5">
-          {quote.device.cover_image && (
-            <img src={quote.device.cover_image.url} alt="" className="h-24 w-32 shrink-0 rounded-xl border border-[#eadfe5] object-cover" />
-          )}
-          <div>
-            <h1 className="font-serif text-2xl font-bold leading-tight text-[#51305f]">{quote.device.title}</h1>
-            {deviceDetails && <p className="mt-1 text-sm text-[#796d77]">{deviceDetails}</p>}
-          </div>
-        </section>
+            {quote.device.images.length ? (
+              <QuoteCarousel images={quote.device.images} title={quote.device.title} />
+            ) : (
+              <div className="grid aspect-[4/3] place-items-center rounded-2xl bg-[#f6f0ec] text-[#c9b9c4]"><ImageOff size={40} /></div>
+            )}
 
-        <dl className="mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-[#fff8f5] p-5 sm:grid-cols-4 print:grid-cols-4">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-[#8a7d87]">Precio del equipo</dt>
-            <dd className="mt-1 font-bold text-[#27212b]">{formatMoney(quote.price, quote.currency)}</dd>
+            <section className="rounded-2xl border-2 border-[#f47d43]/60 bg-white p-5 shadow-sm" aria-label="Pago inicial">
+              <p className="text-center text-[#5e5260]">El <span className="font-bold text-[#27212b]">Pago Inicial</span> incluye:</p>
+              <div className="mt-4 flex items-center justify-between gap-3 text-sm">
+                <span className="flex items-center gap-2 text-[#5e5260]"><Wallet size={18} className="text-[#f47d43]" />Enganche</span>
+                <span className="text-[#27212b]">{wholeMoney(quote.down_payment, quote.currency)}</span>
+              </div>
+              <div className="ml-auto mt-3 w-1/2 border-t-2 border-[#27212b] pt-2 text-right font-bold text-[#27212b]">{wholeMoney(quote.down_payment, quote.currency)}</div>
+            </section>
           </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-[#8a7d87]">Pago inicial</dt>
-            <dd className="mt-1 font-bold text-[#27212b]">{formatMoney(quote.down_payment, quote.currency)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-[#8a7d87]">Monto a financiar</dt>
-            <dd className="mt-1 font-bold text-[#27212b]">{formatMoney(quote.financed_amount, quote.currency)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-[#8a7d87]">Tasa anual</dt>
-            <dd className="mt-1 font-bold text-[#27212b]">{Number(quote.annual_rate) > 0 ? `${Number(quote.annual_rate)}%` : 'Sin intereses'}</dd>
-          </div>
-        </dl>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-xl font-bold text-[#51305f]">Mensualidades</h2>
-          <div className="mt-3 overflow-x-auto rounded-xl border border-[#eadfe5]">
-            <table className="w-full min-w-[480px] text-sm">
-              <thead className="bg-[#51305f] text-left text-xs uppercase tracking-wide text-white">
-                <tr>
-                  <th scope="col" className="px-4 py-3 font-semibold">Plazo</th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">Mensualidad</th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">Intereses</th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">Costo total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.plans.map((plan) => (
-                  <tr key={plan.months} className="border-t border-[#eadfe5] first:border-t-0 even:bg-[#fffaf7]">
-                    <td className="px-4 py-3 font-semibold text-[#5e5260]">{plan.months} meses</td>
-                    <td className="px-4 py-3 text-right font-bold text-[#27212b]">{formatMoney(plan.monthly_payment, quote.currency)}</td>
-                    <td className="px-4 py-3 text-right text-[#5e5260]">{formatMoney(plan.total_interest, quote.currency)}</td>
-                    <td className="px-4 py-3 text-right text-[#5e5260]">{formatMoney(plan.total_cost, quote.currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-[#8a7d87]">
-            El costo total incluye el pago inicial. Montos en {quote.currency}, calculados con pagos fijos mensuales. Esta cotización es informativa y no constituye una oferta de crédito; el financiamiento está sujeto a aprobación.
-          </p>
-        </section>
+          <div>
+            <div>
+              <div>
+                <h1 className="border-b-2 border-[#d9cdd4] pb-1 text-2xl leading-tight text-[#51305f] sm:text-[1.7rem]">{quote.device.title}</h1>
+                <p className="mt-2 text-3xl font-bold text-[#f47d43]">{wholeMoney(quote.price, quote.currency)}</p>
+              </div>
+            </div>
 
-        <footer className="mt-8 border-t border-[#eadfe5] pt-4 text-xs text-[#8a7d87]">
-          <p>Consulta esta cotización en línea: <span className="break-all font-semibold text-[#51305f]">{shareUrl}</span></p>
+            <div role="radiogroup" aria-label="Plazo de financiamiento" className="mt-5 space-y-3 print:mt-4 print:space-y-2">
+              {quote.plans.map((plan, position) => {
+                const color = TERM_COLORS[position % TERM_COLORS.length]
+                const isSelected = selectedMonths === plan.months
+                const isDimmed = confirmed && !isSelected
+                return (
+                  <button
+                    key={plan.months}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    disabled={!canConfirm}
+                    onClick={() => setSelectedMonths(plan.months)}
+                    className={cn(
+                      'relative w-full rounded-2xl border bg-white px-5 py-3 text-left disabled:cursor-default print:py-2',
+                      isSelected ? 'border-[#f47d43] ring-2 ring-[#f47d43]/40' : 'border-[#9b8f98]/70 enabled:hover:border-[#f47d43]',
+                      isDimmed && 'opacity-50 print:opacity-100',
+                    )}
+                  >
+                    <span className="absolute top-3 right-4 rounded-full px-3 py-0.5 text-xs font-bold text-white" style={{ backgroundColor: color }}>{plan.months} meses</span>
+                    <span className="flex items-center gap-2 text-[#27212b]">
+                      {isSelected && <CheckCircle2 size={16} className="text-[#f47d43]" />}
+                      Financiamiento
+                    </span>
+                    <span className="mt-0.5 block text-2xl print:text-xl" style={{ color }}>{wholeMoney(plan.monthly_payment, quote.currency)}/mes</span>
+                    <span className="mt-2 grid grid-cols-2 text-center text-sm print:mt-1 print:text-xs">
+                      <span><span className="block text-[#5e5260]">Pago Inicial</span><span className="text-[#27212b]">{wholeMoney(quote.down_payment, quote.currency)}</span></span>
+                      <span><span className="block text-[#5e5260]">Costo total</span><span className="text-[#27212b]">{wholeMoney(plan.total_cost, quote.currency)}</span></span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {confirmed ? (
+              <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 print:hidden" role="status">
+                <p className="flex items-center gap-2 font-bold"><CheckCircle2 size={18} />Cotización enviada</p>
+                <p className="mt-1">Su solicitud del plan a {quote.selected_months} meses fue enviada a un agente de Sonovita, quien se pondrá en contacto con usted a la brevedad.</p>
+              </div>
+            ) : quote.is_expired ? (
+              <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 print:hidden">
+                Esta cotización venció el {formatDate(quote.valid_until)}. <Link href={`/dispositivo/?slug=${quote.device.slug}`} className="font-bold underline">Vuelva a cotizar el equipo</Link> para obtener montos vigentes.
+              </div>
+            ) : selectedMonths !== null ? (
+              <div className="mt-5 rounded-2xl border border-[#eadfe5] bg-[#fff8f5] p-5 print:hidden">
+                <p className="text-sm leading-relaxed text-[#5e5260]">
+                  Al confirmar, su cotización con el plan a <span className="font-bold text-[#27212b]">{selectedMonths} meses</span> será enviada a un agente de Sonovita, quien se pondrá en contacto con usted a la brevedad para dar seguimiento a su solicitud.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <Field label="Teléfono de contacto" error={confirmError?.field('phone')}>
+                    <input className={inputClass} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="10 dígitos" />
+                  </Field>
+                  <Field label="Correo (opcional)" error={confirmError?.field('email')}>
+                    <input className={inputClass} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+                  </Field>
+                </div>
+                {confirmError && !confirmError.field('phone') && !confirmError.field('email') && (
+                  <p className="mt-3 text-sm font-medium text-red-600">{confirmError.field('months') ?? confirmError.message}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={confirmQuote}
+                  disabled={confirming || phone.replace(/\D/g, '').length < 10}
+                  className="mt-4 w-full rounded-full bg-[#f47d43] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#df6935] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {confirming ? 'Enviando…' : 'Confirmar'}
+                </button>
+              </div>
+            ) : (
+              <p className="mt-4 text-center text-sm text-[#8a7d87] print:hidden">Seleccione el plazo de su preferencia para confirmar su cotización.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-between gap-4 px-6 pb-4 text-sm text-[#5e5260] sm:flex-row sm:items-end sm:px-8 print:mt-auto print:flex-row print:items-end print:text-xs">
+          <div>
+            <p className="font-bold text-[#51305f]">Cotización ID <span className="ml-1 rounded-full border border-[#9b8f98] px-2 py-0.5 text-xs font-normal text-[#5e5260]">{quote.folio}</span></p>
+            <p className="mt-1">Los precios están expresados en {quote.currency === 'MXN' ? 'pesos (MXN)' : quote.currency}.</p>
+            <p>Esta cotización está sujeta a cambios. Vigencia de 15 días naturales, hasta el {formatDate(quote.valid_until)}.</p>
+            <p>Tasa anual de {Number(quote.annual_rate)}%. Financiamiento sujeto a aprobación.</p>
+          </div>
+        </div>
+
+        <footer className="flex flex-col gap-2 bg-gradient-to-r from-[#3c2447] via-[#51305f] to-[#7a3f73] px-6 py-4 text-sm text-white sm:flex-row sm:items-center sm:justify-between sm:px-8 print:flex-row print:items-center print:justify-between">
+          <span className="font-bold">sonovita.com.mx</span>
+          <span className="text-white/80">Marketplace de equipos médicos</span>
+          <span className="break-all text-xs text-white/70">{shareUrl}</span>
         </footer>
       </article>
+
+      <div className="fixed right-4 bottom-6 z-40 flex flex-col items-end gap-2 sm:right-6 print:hidden">
+        <button type="button" onClick={copyLink} aria-label="Copiar link" className="inline-flex items-center gap-2 rounded-full border border-[#eadfe5] bg-white p-3 text-sm font-bold text-[#51305f] shadow-md hover:border-[#f47d43] sm:px-4 sm:py-2.5">
+          {copied ? <Check size={16} /> : <Copy size={16} />}<span className="hidden sm:inline">{copied ? 'Link copiado' : 'Copiar link'}</span>
+        </button>
+        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-full bg-[#f47d43] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#f47d43]/30 hover:bg-[#df6935]">
+          <Download size={18} />Descargar PDF
+        </button>
+      </div>
     </div>
   )
 }
