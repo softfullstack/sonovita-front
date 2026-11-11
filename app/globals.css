@@ -27,3 +27,10 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
 .font-serif { font-family: Georgia, 'Times New Roman', serif; }
 button, a, input, select { transition: all 180ms ease; }
 button { cursor: pointer; }
+
+@media print {
+  @page { size: letter; margin: 14mm; }
+  body, body > div { background: #ffffff !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  tr { break-inside: avoid; }
+}

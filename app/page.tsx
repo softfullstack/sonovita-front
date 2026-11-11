@@ -30,6 +30,9 @@ export default function HomePage() {
     router.push(`/catalogo/${params.size ? `?${params}` : ''}`)
   }
 
+  // The specialty grid only links to categories that have published devices.
+  const categoriesWithDevices = categories.filter((item) => (item.published_devices_count ?? 0) > 0)
+
   return (
     <>
       <section id="inicio" className="relative overflow-hidden bg-[#f5ebe6]">
@@ -84,7 +87,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {categories.length > 0 && (
+      {categoriesWithDevices.length > 0 && (
         <section id="categorias" className="bg-[#f8efeb] px-5 py-16 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 text-center">
@@ -92,7 +95,7 @@ export default function HomePage() {
               <h2 className="mt-2 font-serif text-4xl font-bold text-[#51305f]">Encuentra lo que necesitas</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
-              {categories.map((item, index) => (
+              {categoriesWithDevices.map((item, index) => (
                 <Link key={item.id} href={`/catalogo/?category=${item.slug}`} className={`rounded-2xl p-7 text-left transition hover:-translate-y-1 ${categoryTones[index % categoryTones.length]}`}>
                   <h3 className="font-serif text-2xl font-bold">{item.name}</h3>
                   <p className="mt-1 flex items-center gap-2 text-sm opacity-75">{item.published_devices_count ?? 0} equipos publicados <ArrowRight size={14} /></p>

@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#3c2447] px-5 py-10 text-white lg:px-8">
+    <footer className="bg-[#3c2447] px-5 py-10 text-white lg:px-8 print:hidden">
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 sm:flex-row sm:items-center">
         <div>
           <img src="/logo-footer.png" alt="Sonovita" width={100} height={100} />
