@@ -60,7 +60,7 @@ export function FinancingQuote({ device, defaultName }: { device: Device; defaul
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-[#eadfe5] bg-white p-6" aria-labelledby="financing-title">
+    <section id="cotiza-a-meses" className="mt-6 scroll-mt-6 rounded-2xl border border-[#eadfe5] bg-white p-6" aria-labelledby="financing-title">
       <h2 id="financing-title" className="flex items-center gap-2 font-serif text-xl font-bold text-[#51305f]"><Calculator size={20} className="text-[#f47d43]" />Cotiza a meses</h2>
       <p className="mt-1 text-sm text-[#796d77]">Escribe tu pago inicial y elige el plazo que más te convenga.</p>
 
