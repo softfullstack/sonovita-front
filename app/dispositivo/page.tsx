@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Mail, MapPin, Phone, ShoppingCart } from 'lucide-react'
 import { DeviceGallery } from '@/components/device-gallery'
 import { FinancingQuote } from '@/components/financing-quote'
 import { api, formatPrice, plainText, whatsappUrl, type Device } from '@/lib/api'
@@ -71,6 +71,11 @@ function DeviceDetail() {
           <h1 className="mt-2 font-serif text-4xl font-bold leading-tight text-[#51305f]">{device.title}</h1>
           <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-emerald-700"><BadgeCheck size={16} />Publicación revisada por Sonovita</p>
           <div className="mt-6 font-serif text-3xl font-bold text-[#51305f]">{formatPrice(device)}</div>
+          {device.price !== null && (
+            <a href="#cotiza-a-meses" className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#f47d43] px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#df6935]">
+              <ShoppingCart size={16} />Adquirir equipo
+            </a>
+          )}
           {device.location && <p className="mt-2 flex items-center gap-1.5 text-sm text-[#8a7d87]"><MapPin size={14} />{device.location}</p>}
 
           <dl className="mt-8 grid grid-cols-2 gap-4 rounded-2xl border border-[#eadfe5] bg-white p-5">
